@@ -1,0 +1,60 @@
+# This Python 3 environment comes with many helpful analytics libraries installed
+# It is defined by the kaggle/python docker image: https://github.com/kaggle/docker-python
+# For example, here's several helpful packages to load in 
+
+import numpy as np # linear algebra
+import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+
+# Input data files are available in the "../input/" directory.
+# For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
+
+import os
+import pandas as pd
+print(os.listdir("../input"))
+housing=pd.read_csv('../input/housing.csv')
+housing.head()
+housing.info()
+housing["ocean_proximity"].value_counts()
+housing.describe()
+import matplotlib.pyplot as plt
+housing.hist(bins=50, figsize=(20,15))
+plt.show()
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import StratifiedShuffleSplit
+split = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
+housing["income_cat"] = np.ceil(housing["median_income"] / 1.5)
+housing["income_cat"].where(housing["income_cat"] < 5, 5.0, inplace=True)
+for train_index, test_index in split.split(housing, housing["income_cat"]):
+    strat_train_set = housing.loc[train_index]
+    strat_test_set = housing.loc[test_index]
+housing = strat_train_set.copy()
+housing.info()
+housing.plot(kind="scatter", x="longitude", y="latitude",alpha=0.1)
+housing.plot(kind="scatter", x="longitude", y="latitude", alpha=0.4,
+s=housing["population"]/100, label="population",
+c="median_house_value", cmap=plt.get_cmap("jet"), colorbar=True,
+)
+plt.legend()
+housing["rooms_per_household"] = housing["total_rooms"]/housing["households"]
+housing["bedrooms_per_room"] = housing["total_bedrooms"]/housing["total_rooms"]
+housing["population_per_household"]=housing["population"]/housing["households"]
+# Any results you write to the current directory are saved as output.
+corr_matrix = housing.corr()
+corr_matrix["median_house_value"].sort_values(ascending=False)
+print(corr_matrix)
+housing = strat_train_set.drop("median_house_value", axis=1)
+housing_labels = strat_train_set["median_house_value"].copy()
+housing.head()
+from sklearn.impute import SimpleImputer
+imputer = SimpleImputer(missing_values=np.nan, strategy='median')
+housing_num = housing.drop("ocean_proximity", axis=1)
+imputer.fit(housing_num)
+print(imputer.statistics_)
+X = imputer.transform(housing_num)
+housing_tr = pd.DataFrame(X, columns=housing_num.columns)
+from sklearn.preprocessing import LabelEncoder
+encoder = LabelEncoder()
+housing_cat = housing["ocean_proximity"]
+housing_cat_encoded = encoder.fit_transform(housing_cat)
+print(housing_cat_encoded)
