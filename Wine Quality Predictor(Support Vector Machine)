@@ -1,0 +1,29 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+from sklearn.linear_model import SGDClassifier
+from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
+%matplotlib inline
+wine = pd.read_csv('../input/winequality-red.csv')
+#Let's check how the data is distributed
+bins = (2, 5, 8)
+group_names = ['bad', 'good']
+wine['quality'] = pd.cut(wine['quality'], bins = bins, labels = group_names)
+label_quality = LabelEncoder()
+wine['quality'] = label_quality.fit_transform(wine['quality'])
+print(wine['quality'].value_counts())
+sns.countplot(wine['quality'])
+X = wine.drop('quality', axis = 1)
+y = wine['quality']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.fit_transform(X_test)
+svc = SVC()
+svc.fit(X_train, y_train)
+pred_svc = svc.predict(X_test)
+print(classification_report(y_test, pred_svc))
